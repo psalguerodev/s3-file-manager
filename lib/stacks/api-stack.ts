@@ -1,11 +1,14 @@
 import * as cdk from 'aws-cdk-lib';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { LambdaConstruct } from '../constructs/lambda-construct';
 
 interface ApiStackProps extends cdk.StackProps {
-  bucket: s3.IBucket
+  bucket: s3.IBucket,
+  userPool: cognito.IUserPool,
+  userPoolClient: cognito.IUserPoolClient
 };
 
 export class ApiStack extends Construct {
@@ -15,6 +18,11 @@ export class ApiStack extends Construct {
     // Create API Gateway
     const api = new apigateway.RestApi(this, 'S3FileManagerApi', {
       restApiName: 'S3 File Manager Service'
+    });
+
+    // Create Cognito Authorizer
+    const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'S3FileManagerAuthorizer', {
+      cognitoUserPools: [props.userPool]
     });
 
     // Create Lambda Functions
@@ -35,12 +43,29 @@ export class ApiStack extends Construct {
 
     // Create API Resources and methods
     const files = api.root.addResource('files');
+    const authorizerConfig = {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO
+    }
 
-    files.addMethod('POST', new apigateway.LambdaIntegration(createPreSignedUrlLambda.function));
-    files.addMethod('GET', new apigateway.LambdaIntegration(listFilesLambda.function));
+    files.addMethod('POST', new apigateway.LambdaIntegration(createPreSignedUrlLambda.function), {
+      ...authorizerConfig
+    });
+
+    files.addMethod('GET', new apigateway.LambdaIntegration(listFilesLambda.function), {
+      ...authorizerConfig
+    });
 
     const file = files.addResource('{fileKey}');
-    file.addMethod('GET', new apigateway.LambdaIntegration(getDownloadUrlLambda.function));
+
+    file.addMethod('GET', new apigateway.LambdaIntegration(getDownloadUrlLambda.function), {
+      ...authorizerConfig
+    });
+
+
+    // Output the User Pool ID and Client ID
+    new cdk.CfnOutput(this, 'UserPoolId', { value: props.userPool.userPoolId });
+    new cdk.CfnOutput(this, 'UserPoolClientId', { value: props.userPoolClient.userPoolClientId });
 
   }
 }
