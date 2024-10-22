@@ -47,3 +47,5 @@ s3-file-manager/
 ├── tsconfig.json
 └── README.md
 ```
+
+### HTTP Request cURL

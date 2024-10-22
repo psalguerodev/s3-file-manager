@@ -41,7 +41,18 @@ export class ApiStack extends Construct {
       bucket: props.bucket
     });
 
+    const signInLambda = new LambdaConstruct(this, 'SignInLambda', {
+      functionName: 'authorizer',
+      bucket: props.bucket,
+      userPoolClientId: props.userPoolClient.userPoolClientId
+    });
+
     // Create API Resources and methods
+    const auth = api.root.addResource('auth');
+    const signIn = auth.addResource('signIn');
+
+    signIn.addMethod('POST', new apigateway.LambdaIntegration(signInLambda.function));
+
     const files = api.root.addResource('files');
     const authorizerConfig = {
       authorizer: authorizer,

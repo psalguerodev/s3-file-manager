@@ -7,6 +7,7 @@ import * as path from 'path';
 interface LambdaConstructProps {
   functionName: string;
   bucket: s3.IBucket;
+  userPoolClientId?: string;
 }
 
 export class LambdaConstruct extends Construct {
@@ -19,11 +20,16 @@ export class LambdaConstruct extends Construct {
     this.function = new lambda.Function(this, props.functionName, {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '..', '..', 'src', 'functions', props.functionName)),
+      code: lambda.Code
+        .fromAsset(path.join(__dirname, '..', '..', 'src', 'functions', props.functionName)),
       environment: {
         BUCKET_NAME: props.bucket.bucketName,
       }
     });
+
+    if (props.userPoolClientId) {
+      this.function.addEnvironment('USER_POOL_CLIENT_ID', props.userPoolClientId);
+    }
 
     // Grant the Lambda function read/write permissions to the S3 bucket
     props.bucket.grantReadWrite(this.function);
