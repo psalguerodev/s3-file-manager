@@ -4,12 +4,21 @@ import { CognitoIdentityProviderClient, InitiateAuthCommand } from '@aws-sdk/cli
 const client = new CognitoIdentityProviderClient({ region: 'us-east-1' });
 
 export const handler: APIGatewayProxyHandler = async (event) => {
+  const customHeaders = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Amz-Date, X-Api-Key, X-Amz-Security-Token',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  };
+
   try {
 
     if (!event.body) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          ...customHeaders
+        },
         body: JSON.stringify({
           error: 'The email and password are required'
         })
@@ -23,7 +32,9 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     if (!email || !password) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          ...customHeaders
+        },
         body: JSON.stringify({
           error: 'The email and password are required'
         })

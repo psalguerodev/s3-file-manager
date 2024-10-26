@@ -17,7 +17,18 @@ export class ApiStack extends Construct {
 
     // Create API Gateway
     const api = new apigateway.RestApi(this, 'S3FileManagerApi', {
-      restApiName: 'S3 File Manager Service'
+      restApiName: 'S3 File Manager Service',
+      defaultCorsPreflightOptions: {
+        allowOrigins: ['*'],
+        allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Métodos HTTP permitidos
+        allowHeaders: [
+          'Content-Type',
+          'Authorization',
+          'X-Amz-Date',
+          'X-Api-Key',
+          'X-Amz-Security-Token',
+        ]
+      },
     });
 
     // Create Cognito Authorizer

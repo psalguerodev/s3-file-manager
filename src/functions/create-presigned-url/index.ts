@@ -15,6 +15,13 @@ interface FileMetaData {
 }
 
 export const handler: APIGatewayProxyHandler = async (event) => {
+  const customHeaders = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Amz-Date, X-Api-Key, X-Amz-Security-Token',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  };
+
   try {
     const bucketName = process.env.BUCKET_NAME;
 
@@ -48,7 +55,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        'Content-Type': 'application/json'
+        ...customHeaders
       },
       body: JSON.stringify({
         uploadUrl: signedUrl,
@@ -62,7 +69,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     return {
       statusCode: 500,
       headers: {
-        'Content-Type': 'application/json',
+        ...customHeaders,
       },
       body: JSON.stringify({ error: 'Failed to create presigned URL.' })
     };

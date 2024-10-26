@@ -5,6 +5,13 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
 export const handler: APIGatewayProxyHandler = async (event) => {
+  const customHeaders = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Amz-Date, X-Api-Key, X-Amz-Security-Token',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  };
+
   try {
     const bucketName = process.env.BUCKET_NAME;
 
@@ -17,7 +24,9 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     if (!fileKey) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          ...customHeaders
+        },
         body: JSON.stringify({ error: 'File key is  required' })
       };
     }
@@ -31,7 +40,9 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        ...customHeaders
+      },
       body: JSON.stringify({ downloadUrl: signedUrl }),
     };
 
@@ -39,7 +50,9 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     console.log(error);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        ...customHeaders
+      },
       body: JSON.stringify({ error: 'Failed to get download URL' })
     };
   }
